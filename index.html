@@ -1,0 +1,439 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今天吃什么？ - 广州美食随机抽奖</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .lottery-area {
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .slot-machine {
+            background: #f8f9fa;
+            border: 3px solid #e9ecef;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .slot-machine.rolling {
+            border-color: #667eea;
+            background: #e8eaf6;
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .restaurant-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            min-height: 32px;
+        }
+
+        .dish-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .dish-tag {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .price-info {
+            font-size: 18px;
+            color: #f5576c;
+            font-weight: bold;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .history {
+            padding: 20px 30px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .history h3 {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .history-item .name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .history-item .time {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .empty-state {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .emoji {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .header h1 { font-size: 22px; }
+            .restaurant-name { font-size: 20px; }
+            .btn { padding: 12px 40px; font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="emoji">🍽️</div>
+            <h1>今天吃什么？</h1>
+            <p>广州美食随机抽奖 · 不吃辣不吃火锅</p>
+        </div>
+
+        <div class="lottery-area">
+            <div class="slot-machine" id="slotMachine">
+                <div class="restaurant-name" id="restaurantName">点击按钮开始抽奖</div>
+                <div class="dish-list" id="dishList"></div>
+                <div class="price-info" id="priceInfo"></div>
+            </div>
+            <button class="btn" id="drawBtn" onclick="startLottery()">开始抽奖</button>
+        </div>
+
+        <div class="history">
+            <h3>📜 抽奖历史</h3>
+            <div class="history-list" id="historyList">
+                <div class="empty-state">还没有抽奖记录，快来试试手气吧！</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const restaurants = [
+            {
+                name: "点都德",
+                dishes: ["虾饺", "红米肠", "凤爪", "蛋挞", "叉烧包"],
+                price: "人均 ¥80-120"
+            },
+            {
+                name: "陶陶居",
+                dishes: ["烧鹅", "白切鸡", "干炒牛河", "菠萝包", "杨枝甘露"],
+                price: "人均 ¥100-150"
+            },
+            {
+                name: "广州酒家",
+                dishes: ["文昌鸡", "清蒸鲈鱼", "烧味拼盘", "腊味煲仔饭"],
+                price: "人均 ¥120-180"
+            },
+            {
+                name: "炳胜品味",
+                dishes: ["脆皮叉烧", "豉油鸡", "干逼粉丝煲", "椰子炖鸡汤"],
+                price: "人均 ¥150-200"
+            },
+            {
+                name: "惠食佳",
+                dishes: ["啫啫煲", "黄鳝煲", "蚝仔烙", "豉汁蒸排骨"],
+                price: "人均 ¥130-180"
+            },
+            {
+                name: "银记肠粉",
+                dishes: ["鲜虾肠粉", "牛肉肠粉", "艇仔粥", "及第粥"],
+                price: "人均 ¥30-50"
+            },
+            {
+                name: "吴系茶餐厅",
+                dishes: ["冰镇奶茶", "菠萝油", "滑蛋叉烧饭", "西多士"],
+                price: "人均 ¥60-90"
+            },
+            {
+                name: "禄鼎记",
+                dishes: ["酸菜鱼", "水煮牛肉", "蒜泥白肉", "担担面"],
+                price: "人均 ¥90-140"
+            },
+            {
+                name: "开饭餐厅",
+                dishes: ["豉油皇鹅肠", "冰镇咕噜肉", "姜葱鸡", "虾酱啫通菜"],
+                price: "人均 ¥80-120"
+            },
+            {
+                name: "文和友龙虾馆",
+                dishes: ["口味虾", "臭豆腐", "嗦螺", "糖油粑粑"],
+                price: "人均 ¥100-160"
+            },
+            {
+                name: "常来小聚",
+                dishes: ["葱油鸡", "酱爆生肠", "咸蛋黄焗南瓜", "五柳炸蛋"],
+                price: "人均 ¥70-110"
+            },
+            {
+                name: "新兴家喻酒家",
+                dishes: ["羊腩煲", "羊肉串", "手抓羊排", "羊肉汤"],
+                price: "人均 ¥100-150"
+            },
+            {
+                name: "顺记冰室",
+                dishes: ["芒果刨冰", "红豆沙", "双皮奶", "姜撞奶"],
+                price: "人均 ¥25-45"
+            },
+            {
+                name: "莲香楼",
+                dishes: ["鸡仔饼", "老婆饼", "杏仁饼", "莲蓉酥"],
+                price: "人均 ¥40-70"
+            },
+            {
+                name: "泮溪酒家",
+                dishes: ["马蹄糕", "炸面", "泮塘五秀", "叉烧酥"],
+                price: "人均 ¥90-140"
+            },
+            {
+                name: "北园酒家",
+                dishes: ["红烧乳鸽", "鲍汁扣鹅掌", "岭南第一鸡", "清蒸多宝鱼"],
+                price: "人均 ¥150-220"
+            },
+            {
+                name: "南园酒家",
+                dishes: ["潮汕打冷", "蚝烙", "卤水拼盘", "牛肉丸"],
+                price: "人均 ¥100-160"
+            },
+            {
+                name: "翠华餐厅",
+                dishes: ["咖喱牛腩饭", "猪扒包", "奶茶", "番茄浓汤螺蛳粉"],
+                price: "人均 ¥60-100"
+            },
+            {
+                name: "沙湾甜品店",
+                dishes: ["双皮奶", "姜撞奶", "芝麻糊", "绿豆沙"],
+                price: "人均 ¥15-30"
+            },
+            {
+                name: "陈添记鱼皮",
+                dishes: ["爽鱼皮", "猪肠粉", "艇仔粥", "萝卜牛杂"],
+                price: "人均 ¥20-40"
+            }
+        ];
+
+        let isRolling = false;
+        let rollTimer = null;
+        let historyItems = [];
+
+        function startLottery() {
+            if (isRolling) return;
+            isRolling = true;
+            document.getElementById('drawBtn').disabled = true;
+            const slotMachine = document.getElementById('slotMachine');
+            slotMachine.classList.add('rolling');
+
+            let rollCount = 0;
+            const maxRolls = 20;
+
+            function roll() {
+                if (rollCount >= maxRolls) {
+                    // 最终结果
+                    const winner = restaurants[Math.floor(Math.random() * restaurants.length)];
+                    showResult(winner);
+                    isRolling = false;
+                    document.getElementById('drawBtn').disabled = false;
+                    slotMachine.classList.remove('rolling');
+                    return;
+                }
+
+                const temp = restaurants[Math.floor(Math.random() * restaurants.length)];
+                document.getElementById('restaurantName').textContent = temp.name;
+                const dishList = document.getElementById('dishList');
+                dishList.innerHTML = '';
+                temp.dishes.forEach(dish => {
+                    const tag = document.createElement('span');
+                    tag.className = 'dish-tag';
+                    tag.textContent = dish;
+                    dishList.appendChild(tag);
+                });
+                document.getElementById('priceInfo').textContent = temp.price;
+
+                rollCount++;
+                const delay = 50 + rollCount * 15;
+                rollTimer = setTimeout(roll, delay);
+            }
+
+            roll();
+        }
+
+        function showResult(restaurant) {
+            document.getElementById('restaurantName').textContent = restaurant.name + ' 🎉';
+            const dishList = document.getElementById('dishList');
+            dishList.innerHTML = '';
+            restaurant.dishes.forEach(dish => {
+                const tag = document.createElement('span');
+                tag.className = 'dish-tag';
+                tag.textContent = dish;
+                dishList.appendChild(tag);
+            });
+            document.getElementById('priceInfo').textContent = restaurant.price;
+
+            // 添加到历史记录
+            addHistory(restaurant);
+        }
+
+        function addHistory(restaurant) {
+            const now = new Date();
+            const timeStr = now.toLocaleString('zh-CN', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            historyItems.unshift({
+                name: restaurant.name,
+                dishes: restaurant.dishes.slice(0, 3).join('、'),
+                price: restaurant.price,
+                time: timeStr
+            });
+
+            if (historyItems.length > 20) {
+                historyItems.pop();
+            }
+
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+
+            if (historyItems.length === 0) {
+                historyList.innerHTML = '<div class="empty-state">还没有抽奖记录，快来试试手气吧！</div>';
+                return;
+            }
+
+            historyItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <div>
+                        <div class="name">${item.name}</div>
+                        <div style="color:#999;font-size:12px;margin-top:4px">${item.dishes}</div>
+                    </div>
+                    <div style="text-align:right">
+                        <div style="color:#f5576c;font-size:13px;font-weight:bold">${item.price}</div>
+                        <div class="time">${item.time}</div>
+                    </div>
+                `;
+                historyList.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>
