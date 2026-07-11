@@ -1,0 +1,17 @@
+{
+  "name": "foods-test",
+  "version": "1.0.0",
+  "description": "美食测试项目",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "keywords": [
+    "food",
+    "test"
+  ],
+  "license": "MIT",
+  "author": "",
+  "type": "commonjs"
+}
